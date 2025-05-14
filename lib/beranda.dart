@@ -3,6 +3,7 @@ import 'package:heartlog/notes.dart';
 import 'package:heartlog/diary_storage.dart';
 import 'package:heartlog/write.dart';
 import 'package:heartlog/user_preferences.dart';
+import 'package:heartlog/mood_insights_card.dart';
 
 class Beranda extends StatefulWidget {
   const Beranda({super.key});
@@ -65,7 +66,7 @@ class _BerandaState extends State<Beranda> {
             children: [
               _buildGreeting(),
               const SizedBox(height: 20),
-              _buildWeatherCard(),
+              MoodInsightsCard(diaryStorage: _diaryStorage),
               const SizedBox(height: 15),
               _buildEmotionPrompt(),
               const SizedBox(height: 20),
@@ -85,14 +86,14 @@ class _BerandaState extends State<Beranda> {
   Widget _buildGreeting() {
     // Extract the first name if there are multiple words
     String displayName = _userName.split(' ').first;
-    
+
     // If the name is "HeartLog User", just display "Hai"
     if (_userName == "HeartLog User") {
       displayName = "";
     }
-    
+
     return Text(
-      displayName.isEmpty 
+      displayName.isEmpty
           ? "Hai\nGimana harimu?"
           : "Hai, $displayName\nGimana harimu?",
       style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w400),
@@ -243,6 +244,9 @@ class _BerandaState extends State<Beranda> {
               suggestion: entry.suggestion,
               imagePath: entry.imagePath,
               text: entry.text,
+              date:
+                  entry
+                      .date, // Pass the date to display when the diary was written
             );
           },
         ),

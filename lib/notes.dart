@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class Notes extends StatelessWidget {
   final String emotion;
   final String keywords;
   final String suggestion;
   final String imagePath;
-  final String? text; // Optional text field
+  final String? text;
+  final DateTime? date;
 
   const Notes({
     super.key,
@@ -14,6 +16,7 @@ class Notes extends StatelessWidget {
     required this.suggestion,
     required this.imagePath,
     this.text,
+    this.date,
   });
 
   @override
@@ -39,23 +42,35 @@ class Notes extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFD745A).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    emotion,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFFD745A),
-                    ),
+                // First row with emotion and date display
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFD745A).withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          emotion,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFFD745A),
+                          ),
+                        ),
+                      ),
+                      if (date != null) ...[
+                        const SizedBox(width: 10),
+                        _buildCompactDateDisplay(date!),
+                      ],
+                    ],
                   ),
                 ),
+                // Emotion image on the right
                 Image.asset(
                   imagePath,
                   width: 32,
@@ -70,6 +85,7 @@ class Notes extends StatelessWidget {
                 ),
               ],
             ),
+
             if (text != null) ...[
               const SizedBox(height: 12),
               Text(
@@ -111,6 +127,52 @@ class Notes extends StatelessWidget {
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  // Compact date display for next to emotion
+  Widget _buildCompactDateDisplay(DateTime dateTime) {
+    // Format date: "14 May"
+    final String formattedDate = DateFormat('d MMM').format(dateTime);
+
+    // Format time: "3:30 PM"
+    final String formattedTime = DateFormat('h:mm a').format(dateTime);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.event_note, size: 14, color: Colors.grey.shade600),
+          const SizedBox(width: 4),
+          Text(
+            formattedDate,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade700,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Container(width: 1, height: 12, color: Colors.grey.shade300),
+          const SizedBox(width: 6),
+          Icon(Icons.schedule, size: 14, color: Colors.grey.shade600),
+          const SizedBox(width: 4),
+          Text(
+            formattedTime,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade700,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

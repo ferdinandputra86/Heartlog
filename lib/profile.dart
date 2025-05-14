@@ -53,8 +53,11 @@ class _ProfileState extends State<Profile> {
 
   void _updateStatistics() {
     _entriesCount = _entries.length.toString();
-    _uniqueMoods = _entries.isEmpty ? '0' : _entries.map((e) => e.emotion).toSet().length.toString();
-    
+    _uniqueMoods =
+        _entries.isEmpty
+            ? '0'
+            : _entries.map((e) => e.emotion).toSet().length.toString();
+
     // Calculate weeks span
     if (_entries.isEmpty) {
       _weeksCount = '0';
@@ -62,10 +65,10 @@ class _ProfileState extends State<Profile> {
       // Sort entries by date
       final sortedEntries = List<DiaryEntry>.from(_entries)
         ..sort((a, b) => a.date.compareTo(b.date));
-      
+
       final firstEntryDate = sortedEntries.first.date;
       final lastEntryDate = sortedEntries.last.date;
-      
+
       // Calculate difference in weeks
       final difference = lastEntryDate.difference(firstEntryDate).inDays;
       final weeks = (difference / 7).ceil();
@@ -147,106 +150,113 @@ class _ProfileState extends State<Profile> {
               _nameController.text = _userName; // Pre-fill with current name
               showDialog(
                 context: context,
-                builder: (context) => Dialog(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.edit,
-                          size: 50,
-                          color: Colors.orangeAccent,
-                        ),
-                        const SizedBox(height: 15),
-                        const Text(
-                          'Change Your Name',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        TextField(
-                          controller: _nameController,
-                          decoration: InputDecoration(
-                            labelText: 'New Username',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              borderSide: BorderSide(
-                                color: Colors.orangeAccent,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              borderSide: const BorderSide(
-                                color: Colors.orangeAccent,
-                                width: 2,
-                              ),
-                            ),
-                            prefixIcon: const Icon(
-                              Icons.person,
+                builder:
+                    (context) => Dialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.edit,
+                              size: 50,
                               color: Colors.orangeAccent,
                             ),
-                            filled: true,
-                            fillColor: Colors.orange.shade50,
-                          ),
-                        ),
-                        const SizedBox(height: 25),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text(
-                                'Cancel',
-                                style: TextStyle(color: Colors.grey),
+                            const SizedBox(height: 15),
+                            const Text(
+                              'Change Your Name',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.orangeAccent,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 25,
-                                  vertical: 12,
-                                ),
-                                shape: RoundedRectangleBorder(
+                            const SizedBox(height: 20),
+                            TextField(
+                              controller: _nameController,
+                              decoration: InputDecoration(
+                                labelText: 'New Username',
+                                border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(15),
+                                  borderSide: BorderSide(
+                                    color: Colors.orangeAccent,
+                                  ),
                                 ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                  borderSide: const BorderSide(
+                                    color: Colors.orangeAccent,
+                                    width: 2,
+                                  ),
+                                ),
+                                prefixIcon: const Icon(
+                                  Icons.person,
+                                  color: Colors.orangeAccent,
+                                ),
+                                filled: true,
+                                fillColor: Colors.orange.shade50,
                               ),
-                              onPressed: () async {
-                                // Implement name change functionality
-                                if (_nameController.text.isNotEmpty) {
-                                  await _userPreferences.setUserName(_nameController.text);
-                                  
-                                  // Show success snackbar
-                                  if (context.mounted) {
-                                    Navigator.pop(context);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Name updated successfully'),
-                                        backgroundColor: Colors.green,
-                                        behavior: SnackBarBehavior.floating,
-                                      ),
-                                    );
-                                  }
-                                }
-                              },
-                              child: const Text(
-                                'Save',
-                                style: TextStyle(fontSize: 16),
-                              ),
+                            ),
+                            const SizedBox(height: 25),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text(
+                                    'Cancel',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orangeAccent,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 25,
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                  ),
+                                  onPressed: () async {
+                                    // Implement name change functionality
+                                    if (_nameController.text.isNotEmpty) {
+                                      await _userPreferences.setUserName(
+                                        _nameController.text,
+                                      );
+
+                                      // Show success snackbar
+                                      if (context.mounted) {
+                                        Navigator.pop(context);
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Name updated successfully',
+                                            ),
+                                            backgroundColor: Colors.green,
+                                            behavior: SnackBarBehavior.floating,
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  child: const Text(
+                                    'Save',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
               );
             }),
             _buildSettingsOption(Icons.info_outline, 'About HeartLog', () {
@@ -398,10 +408,11 @@ class _ProfileState extends State<Profile> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15),
                             ),
-                          ),                          onPressed: () async {
+                          ),
+                          onPressed: () async {
                             // Implement diary deletion functionality
                             await _diaryStorage.deleteAllEntries();
-                            
+
                             // Update statistics immediately
                             setState(() {
                               _loadStatistics();

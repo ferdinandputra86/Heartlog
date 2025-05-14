@@ -253,4 +253,146 @@ class DiaryStorage {
       print('All diary entries have been deleted');
     }
   }
+
+  // Get most frequent emotion in the last week
+  String getMostFrequentEmotion() {
+    if (_entries.isEmpty) {
+      return "No entries yet";
+    }
+
+    final now = DateTime.now();
+    final lastWeek = now.subtract(const Duration(days: 7));
+
+    // Filter entries from the last week
+    final recentEntries =
+        _entries.where((entry) => entry.date.isAfter(lastWeek)).toList();
+
+    if (recentEntries.isEmpty) {
+      return "No recent entries";
+    }
+
+    // Count emotions
+    final Map<String, int> emotionCount = {};
+    for (var entry in recentEntries) {
+      emotionCount[entry.emotion] = (emotionCount[entry.emotion] ?? 0) + 1;
+    }
+
+    // Find the most frequent emotion
+    String mostFrequent = recentEntries.first.emotion;
+    int highestCount = 0;
+
+    emotionCount.forEach((emotion, count) {
+      if (count > highestCount) {
+        mostFrequent = emotion;
+        highestCount = count;
+      }
+    });
+
+    return mostFrequent;
+  }
+
+  // Get streak (consecutive days with entries)
+  int getCurrentStreak() {
+    if (_entries.isEmpty) {
+      return 0;
+    }
+
+    // Sort entries by date (newest first)
+    final sortedEntries = List<DiaryEntry>.from(_entries)
+      ..sort((a, b) => b.date.compareTo(a.date));
+
+    // Get today's date without time component
+    final today = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
+
+    // Get the date of the most recent entry
+    final latestEntryDate = DateTime(
+      sortedEntries.first.date.year,
+      sortedEntries.first.date.month,
+      sortedEntries.first.date.day,
+    );
+
+    // If the most recent entry is not from today or yesterday, streak is 0
+    if (today.difference(latestEntryDate).inDays > 1) {
+      return 0;
+    }
+    // Count streak
+    int streak = 1; // Start with 1 for the most recent day
+
+    // Create a map to track which dates have entries (to handle multiple entries per day)
+    final Map<String, bool> datesWithEntries = {};
+    for (var entry in sortedEntries) {
+      final entryDate = DateTime(
+        entry.date.year,
+        entry.date.month,
+        entry.date.day,
+      );
+      datesWithEntries[entryDate.toString()] = true;
+    }
+
+    // Check consecutive days
+    for (int i = 1; ; i++) {
+      final checkDate = today.subtract(Duration(days: i));
+      final checkDateStr = checkDate.toString().split(' ')[0];
+
+      if (datesWithEntries.containsKey(checkDateStr)) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+
+    return streak;
+  }
+
+  // Get emotional balance (ratio of positive to negative emotions)
+  double getEmotionalBalance() {
+    if (_entries.isEmpty) {
+      return 0.5; // Neutral if no entries
+    }
+
+    int positive = 0;
+    int negative = 0;
+
+    for (var entry in _entries) {
+      // Classify emotions as positive or negative
+      // You can customize this based on your emotion categories
+      if (entry.emotion.toLowerCase().contains('senang') ||
+          entry.emotion.toLowerCase() == 'happy') {
+        positive++;
+      } else if (entry.emotion.toLowerCase().contains('sedih') ||
+          entry.emotion.toLowerCase() == 'sad' ||
+          entry.emotion.toLowerCase().contains('marah') ||
+          entry.emotion.toLowerCase() == 'angry' ||
+          entry.emotion.toLowerCase().contains('takut') ||
+          entry.emotion.toLowerCase() == 'fear') {
+        negative++;
+      }
+    }
+
+    final total = positive + negative;
+    if (total == 0) return 0.5;
+
+    return positive / total; // Value between 0.0 and 1.0
+  }
+
+  // Get mood improvement suggestions based on emotional state
+  String getMoodSuggestion() {
+    if (_entries.isEmpty) {
+      return "Start writing about your day to get personalized suggestions";
+    }
+
+    final emotionalBalance = getEmotionalBalance();
+
+    if (emotionalBalance >= 0.7) {
+      return "Your mood is great! Keep up the positive mindset";
+    } else if (emotionalBalance >= 0.4) {
+      return "Try reflecting on what made you happy recently";
+    } else {
+      return "Consider taking some time for self-care today";
+    }
+  }
 }

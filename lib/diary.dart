@@ -68,6 +68,7 @@ class _DiaryState extends State<Diary> {
                       suggestion: entry.suggestion,
                       imagePath: entry.imagePath,
                       text: entry.text,
+                      date: entry.date, // Pass the date to the Notes widget
                     );
                   },
                 ),
