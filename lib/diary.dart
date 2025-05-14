@@ -28,7 +28,6 @@ class _DiaryState extends State<Diary> {
       if (mounted) {
         setState(() {
           entries = updatedEntries;
-          print("Diary updated: ${entries.length} entries from stream");
         });
       }
     });
@@ -37,7 +36,6 @@ class _DiaryState extends State<Diary> {
   // Refresh entries from DiaryStorage
   void _loadEntries() {
     entries = _diaryStorage.getEntriesByDate();
-    print("Loaded ${entries.length} entries from DiaryStorage");
   }
 
   @override

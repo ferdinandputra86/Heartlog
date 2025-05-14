@@ -64,9 +64,8 @@ class DiaryStorage {
 
   // Stream yang bisa didengarkan oleh widget untuk mendapatkan update
   Stream<List<DiaryEntry>> get entriesStream => _entriesStreamController.stream;
-
   // SharedPreferences key
-  static const String _storageKey = 'diary_entries';
+  static const String _storageKey = 'heartlog_diary_entries';
 
   // Initialize and load data from SharedPreferences
   DiaryStorage._internal() {
@@ -98,30 +97,13 @@ class DiaryStorage {
           print('Loaded ${_entries.length} entries from storage');
         }
       } else {
-        // Add sample entries if storage is empty
+        // Initialize with empty entries when storage is empty
         _entries.clear();
-        _entries.addAll([
-          DiaryEntry(
-            text:
-                'Hari ini saya merasa sangat bahagia karena berhasil menyelesaikan proyek penting.',
-            date: DateTime.now().subtract(const Duration(days: 1)),
-            emotion: 'Senang',
-            suggestion: 'Bagikan kebahagiaanmu dengan orang lain.',
-            imagePath: 'assets/Emotion/senang.png',
-          ),
-          DiaryEntry(
-            text: 'Saya merasa sedih setelah mendengar kabar dari teman lama.',
-            date: DateTime.now().subtract(const Duration(days: 2)),
-            emotion: 'Sedih',
-            suggestion: 'Dengarkan musik atau hubungi teman untuk ngobrol.',
-            imagePath: 'assets/Emotion/sedih.png',
-          ),
-        ]);
 
-        // Save initial entries to storage
-        _saveEntries();
+        // No need to save empty entries
+        // _saveEntries();
         if (kDebugMode) {
-          print('Added sample entries - storage was empty');
+          print('Storage was empty, initialized with empty entries list');
         }
       }
     } catch (e) {
@@ -137,9 +119,17 @@ class DiaryStorage {
       final prefs = await SharedPreferences.getInstance();
       final entriesJson =
           _entries.map((entry) => jsonEncode(entry.toJson())).toList();
+
+      // Print the first entry JSON for debugging
+      if (kDebugMode && entriesJson.isNotEmpty) {
+        print('First entry JSON: ${entriesJson[0]}');
+      }
+
       await prefs.setStringList(_storageKey, entriesJson);
       if (kDebugMode) {
-        print('Saved ${_entries.length} entries to storage');
+        print(
+          'Saved ${_entries.length} entries to storage with key $_storageKey',
+        );
       }
     } catch (e) {
       if (kDebugMode) {
@@ -233,6 +223,21 @@ class DiaryStorage {
         return 'assets/Emotion/takut.png';
       default:
         return 'assets/Emotion/senang.png';
+    }
+  }
+
+  // Debug function to print all entries
+  void debugPrintAllEntries() {
+    if (kDebugMode) {
+      print("======= All DiaryStorage Entries =======");
+      print("Total entries: ${_entries.length}");
+      for (var i = 0; i < _entries.length; i++) {
+        final entry = _entries[i];
+        print(
+          "[$i] ${entry.date} - ${entry.emotion}: ${entry.text.substring(0, entry.text.length > 30 ? 30 : entry.text.length)}...",
+        );
+      }
+      print("======================================");
     }
   }
 }

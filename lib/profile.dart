@@ -26,9 +26,11 @@ class Profile extends StatelessWidget {
                 CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.grey.shade300,
-                  backgroundImage: AssetImage(
-                    'assets/profile_picture.png',
-                  ), // Replace with actual image asset
+                  child: Icon(
+                    Icons.person,
+                    size: 50,
+                    color: Colors.grey.shade500,
+                  ),
                 ),
                 CircleAvatar(
                   radius: 16,
@@ -48,21 +50,21 @@ class Profile extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             const Text(
-              'Sarah Williams',
+              'HeartLog User',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             const Text(
-              'sarah.w@email.com',
+              'user@example.com',
               style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildStatistic('32', 'Entries'),
-                _buildStatistic('14', 'Moods'),
-                _buildStatistic('8', 'Weeks'),
+                _buildStatistic('0', 'Entries'),
+                _buildStatistic('0', 'Moods'),
+                _buildStatistic('0', 'Weeks'),
               ],
             ),
             const SizedBox(height: 24),

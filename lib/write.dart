@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:heartlog/diary_storage.dart';
 
 class Write extends StatefulWidget {
@@ -110,11 +109,6 @@ class _WriteState extends State<Write> {
                     imagePath: _getEmotionImagePath(selectedEmotion),
                   );
                   DiaryStorage().addEntry(newDiaryEntry);
-                  if (kDebugMode) {
-                    print(
-                      "Entry saved to DiaryStorage: ${DiaryStorage().getEntries().length} entries",
-                    );
-                  }
 
                   // Return true to indicate an entry was added - this will trigger a refresh
                   Navigator.pop(context, true);
