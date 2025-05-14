@@ -240,4 +240,17 @@ class DiaryStorage {
       print("======================================");
     }
   }
+
+  // Delete all diary entries
+  Future<void> deleteAllEntries() async {
+    _entries.clear();
+    await _saveEntries(); // Save empty list to persistent storage
+
+    // Notify listeners about the change
+    _notifyListeners();
+
+    if (kDebugMode) {
+      print('All diary entries have been deleted');
+    }
+  }
 }

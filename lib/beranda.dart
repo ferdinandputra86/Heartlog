@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:heartlog/notes.dart';
 import 'package:heartlog/diary_storage.dart';
 import 'package:heartlog/write.dart';
+import 'package:heartlog/user_preferences.dart';
 
 class Beranda extends StatefulWidget {
   const Beranda({super.key});
@@ -12,18 +13,30 @@ class Beranda extends StatefulWidget {
 
 class _BerandaState extends State<Beranda> {
   final DiaryStorage _diaryStorage = DiaryStorage();
+  final UserPreferences _userPreferences = UserPreferences();
   List<DiaryEntry> _latestEntries = [];
+  late String _userName;
 
   @override
   void initState() {
     super.initState();
     _loadLatestEntries();
+    _userName = _userPreferences.userName;
 
     // Listen for changes in diary entries
     _diaryStorage.entriesStream.listen((entries) {
       if (mounted) {
         setState(() {
           _latestEntries = _getLatestEntries(entries);
+        });
+      }
+    });
+
+    // Listen for username changes
+    _userPreferences.userNameStream.listen((newName) {
+      if (mounted) {
+        setState(() {
+          _userName = newName;
         });
       }
     });
@@ -70,9 +83,19 @@ class _BerandaState extends State<Beranda> {
   }
 
   Widget _buildGreeting() {
-    return const Text(
-      "Hai, Rio\nGimana harimu?",
-      style: TextStyle(fontSize: 30, fontWeight: FontWeight.w400),
+    // Extract the first name if there are multiple words
+    String displayName = _userName.split(' ').first;
+    
+    // If the name is "HeartLog User", just display "Hai"
+    if (_userName == "HeartLog User") {
+      displayName = "";
+    }
+    
+    return Text(
+      displayName.isEmpty 
+          ? "Hai\nGimana harimu?"
+          : "Hai, $displayName\nGimana harimu?",
+      style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w400),
     );
   }
 
