@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:heartlog/constants/index.dart';
 
-class Notes extends StatelessWidget {
+class DiaryNote extends StatelessWidget {
   final String emotion;
   final String keywords;
   final String suggestion;
@@ -9,7 +10,7 @@ class Notes extends StatelessWidget {
   final String? text;
   final DateTime? date;
 
-  const Notes({
+  const DiaryNote({
     super.key,
     required this.emotion,
     required this.keywords,
@@ -24,7 +25,7 @@ class Notes extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -52,14 +53,14 @@ class Notes extends StatelessWidget {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFD745A).withOpacity(0.2),
+                          color: AppColors.primary.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           emotion,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFFFD745A),
+                            color: AppColors.primary,
                           ),
                         ),
                       ),
@@ -90,7 +91,7 @@ class Notes extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 text!,
-                style: const TextStyle(fontSize: 16),
+                style: AppTextStyles.bodyMedium,
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -100,24 +101,23 @@ class Notes extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFECDF),
+                  color: AppColors.primaryLight,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
                     const Icon(
                       Icons.lightbulb_outline,
-                      color: Color(0xFFFD745A),
+                      color: AppColors.primary,
                       size: 18,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         suggestion,
-                        style: const TextStyle(
+                        style: AppTextStyles.bodySmall.copyWith(
                           fontStyle: FontStyle.italic,
-                          fontSize: 14,
-                          color: Color(0xFF666666),
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ),

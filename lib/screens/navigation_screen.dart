@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:heartlog/beranda.dart';
-import 'package:heartlog/diary.dart';
-import 'package:heartlog/profile.dart';
-import 'package:heartlog/statistic.dart';
+import 'package:heartlog/screens/index.dart';
+import 'package:heartlog/constants/index.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
-class Navigation extends StatelessWidget {
-  const Navigation({super.key});
+class NavigationScreen extends StatelessWidget {
+  const NavigationScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -16,20 +14,25 @@ class Navigation extends StatelessWidget {
       body: Obx(() {
         return IndexedStack(
           index: controller.selectedIndex.value,
-          children: const [Beranda(), Diary(), Statistic(), Profile()],
+          children: const [
+            BerandaScreen(),
+            DiaryScreen(),
+            StatisticScreen(),
+            ProfileScreen(),
+          ],
         );
       }),
       extendBody:
           true, // Penting: membuat body menyatu dengan navbar (mengurangi terpotongnya navbar)
       bottomNavigationBar: Obx(() {
         return Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFFFFF1E0),
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            color: AppColors.background,
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(24),
               topRight: Radius.circular(24),
             ),
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
                 color: Colors.black12,
                 blurRadius: 10,
@@ -43,8 +46,8 @@ class Navigation extends StatelessWidget {
               topRight: Radius.circular(24),
             ),
             child: NavigationBar(
-              backgroundColor: const Color(0xFFFFF1E0),
-              indicatorColor: const Color(0xfffd745a).withOpacity(0.3),
+              backgroundColor: AppColors.background,
+              indicatorColor: AppColors.primary.withOpacity(0.3),
               height: 65, // Tinggi navbar yang lebih kecil
               elevation: 0,
               labelBehavior:
@@ -52,29 +55,32 @@ class Navigation extends StatelessWidget {
               selectedIndex: controller.selectedIndex.value,
               onDestinationSelected:
                   (index) => controller.selectedIndex.value = index,
-              destinations: const [
-                NavigationDestination(
-                  icon: Icon(Iconsax.home, color: Color(0xFF666666)),
-                  selectedIcon: Icon(Iconsax.home, color: Color(0xfffd745a)),
-                  label: 'Home',
+              destinations: [
+                const NavigationDestination(
+                  icon: Icon(Iconsax.home, color: AppColors.textSecondary),
+                  selectedIcon: Icon(Iconsax.home, color: AppColors.primary),
+                  label: 'Beranda',
                 ),
-                NavigationDestination(
-                  icon: Icon(Iconsax.book_saved, color: Color(0xFF666666)),
+                const NavigationDestination(
+                  icon: Icon(
+                    Iconsax.book_saved,
+                    color: AppColors.textSecondary,
+                  ),
                   selectedIcon: Icon(
                     Iconsax.book_saved,
-                    color: Color(0xfffd745a),
+                    color: AppColors.primary,
                   ),
-                  label: 'Diary',
+                  label: 'Diari',
                 ),
-                NavigationDestination(
-                  icon: Icon(Iconsax.chart, color: Color(0xFF666666)),
-                  selectedIcon: Icon(Iconsax.chart, color: Color(0xfffd745a)),
-                  label: 'Stats',
+                const NavigationDestination(
+                  icon: Icon(Iconsax.chart, color: AppColors.textSecondary),
+                  selectedIcon: Icon(Iconsax.chart, color: AppColors.primary),
+                  label: 'Statistik',
                 ),
-                NavigationDestination(
-                  icon: Icon(Iconsax.user, color: Color(0xFF666666)),
-                  selectedIcon: Icon(Iconsax.user, color: Color(0xfffd745a)),
-                  label: 'Profile',
+                const NavigationDestination(
+                  icon: Icon(Iconsax.user, color: AppColors.textSecondary),
+                  selectedIcon: Icon(Iconsax.user, color: AppColors.primary),
+                  label: 'Profil',
                 ),
               ],
             ),

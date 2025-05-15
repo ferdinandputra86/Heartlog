@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:heartlog/navigation.dart'; // Ganti sesuai lokasi file kamu
+import 'package:heartlog/screens/navigation_screen.dart';
 
-class Splash extends StatefulWidget {
-  const Splash({super.key});
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
 
   @override
-  State<Splash> createState() => _SplashState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
@@ -21,7 +22,7 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
           // Check if widget is still mounted
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const Navigation()),
+            MaterialPageRoute(builder: (_) => const NavigationScreen()),
           );
         }
       });
@@ -40,10 +41,21 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 360;
+
+    // Calculate responsive logo size
+    final double logoWidth = isSmallScreen ? 180 : 217;
+    final double logoHeight = isSmallScreen ? 196 : 237;
+
     return Scaffold(
       backgroundColor: const Color(0xFFFFE6CC),
       body: Center(
-        child: Image.asset('assets/logo.png', width: 217, height: 237),
+        child: Image.asset(
+          'assets/logo.png',
+          width: logoWidth,
+          height: logoHeight,
+        ),
       ),
     );
   }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:heartlog/splash.dart';
-import 'package:heartlog/diary_storage.dart';
-import 'package:heartlog/write.dart';
+import 'package:heartlog/screens/index.dart';
+import 'package:heartlog/constants/index.dart';
 import 'package:flutter/foundation.dart';
 
 void main() async {
@@ -10,17 +9,16 @@ void main() async {
 
   // Preload diary entries
   try {
-    // Initialize DiaryStorage (will load entries from SharedPreferences)
-    await DiaryStorage().reloadEntries();
+    // Initialize DiaryStorageService
+    // Service is automatically initialized when first accessed
     if (kDebugMode) {
-      print('Diary entries loaded successfully');
+      print('Diary entries service initialized');
     }
   } catch (e) {
     if (kDebugMode) {
-      print('Error loading diary entries: $e');
+      print('Error initializing diary entries: $e');
     }
   }
-
   // Run the app
   runApp(const MyApp());
 }
@@ -28,18 +26,44 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
-  @override
+  // This widget is the root of your application.  @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'HeartLog',
+      title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: const Color(0xfffd745a),
-        scaffoldBackgroundColor: const Color(0xFFFFF5EE),
+        primaryColor: AppColors.primary,
+        scaffoldBackgroundColor: AppColors.backgroundVariant,
+        fontFamily: 'NunitoSans',
+        textTheme: const TextTheme(
+          displayLarge: TextStyle(
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w600,
+            fontSize: 30,
+          ),
+          displayMedium: TextStyle(
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w500,
+            fontSize: 24,
+          ),
+          titleLarge: TextStyle(
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w500,
+            fontSize: 20,
+          ),
+          bodyLarge: TextStyle(fontSize: 16),
+          bodyMedium: TextStyle(fontSize: 14),
+        ),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          primary: AppColors.primary,
+          secondary: AppColors.primaryLight,
+          surface: AppColors.white,
+          background: AppColors.backgroundVariant,
+        ),
       ),
-      home: const Splash(),
-      routes: {'/write': (context) => const Write()},
+      home: const SplashScreen(),
+      routes: {'/write': (context) => const WriteScreen()},
     );
   }
 }

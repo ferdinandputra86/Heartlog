@@ -1,27 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:heartlog/diary_storage.dart';
+import 'package:heartlog/models/diary_entry.dart';
+import 'package:heartlog/controllers/statistic/statistic_controller.dart';
+import 'package:heartlog/constants/index.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-class Statistic extends StatefulWidget {
-  const Statistic({super.key});
+class StatisticScreen extends StatefulWidget {
+  const StatisticScreen({super.key});
 
   @override
-  State<Statistic> createState() => _StatisticState();
+  State<StatisticScreen> createState() => _StatisticScreenState();
 }
 
-class _StatisticState extends State<Statistic> {
-  final DiaryStorage _diaryStorage = DiaryStorage();
+class _StatisticScreenState extends State<StatisticScreen> {
+  final StatisticController _statisticController = StatisticController();
   List<DiaryEntry> _entries = [];
   Map<String, int> _emotionCounts = {};
   Map<int, double> _dailyMoodScores = {};
   Map<int, double> _monthlyMoodScores = {};
+
   @override
   void initState() {
     super.initState();
     _loadEntries();
 
     // Listen to entry changes
-    _diaryStorage.entriesStream.listen((entries) {
+    _statisticController.entriesStream.listen((entries) {
       if (mounted) {
         setState(() {
           _processEntries(entries);
@@ -31,198 +35,102 @@ class _StatisticState extends State<Statistic> {
   }
 
   void _loadEntries() {
-    _entries = _diaryStorage.getEntriesByDate();
-    _processEntries(_entries);
+    _statisticController.loadEntries();
+    _entries = _statisticController.entries;
+    _emotionCounts = _statisticController.emotionCounts;
+    _dailyMoodScores = _statisticController.dailyMoodScores;
+    _monthlyMoodScores = _statisticController.monthlyMoodScores;
   }
 
   void _processEntries(List<DiaryEntry> entries) {
-    _entries = entries;
-    // Count emotions
-    _emotionCounts = {};
-    for (var entry in entries) {
-      // Use a fallback value if emotion is empty or null
-      String emotion =
-          entry.emotion.trim().isNotEmpty ? entry.emotion : "Unknown";
-      _emotionCounts[emotion] = (_emotionCounts[emotion] ?? 0) + 1;
-    }
-
-    // Calculate daily mood scores for the past week
-    _dailyMoodScores = {};
-    final now = DateTime.now();
-    for (int i = 6; i >= 0; i--) {
-      final day = now.subtract(Duration(days: i));
-      final dayEntries =
-          entries
-              .where(
-                (entry) =>
-                    entry.date.year == day.year &&
-                    entry.date.month == day.month &&
-                    entry.date.day == day.day,
-              )
-              .toList();
-
-      if (dayEntries.isNotEmpty) {
-        // Simple scoring: Senang=5, default=3
-        double dayScore = 0;
-        for (var entry in dayEntries) {
-          switch (entry.emotion) {
-            case 'Senang':
-              dayScore += 5;
-              break;
-            case 'Marah':
-              dayScore += 2;
-              break;
-            case 'Sedih':
-              dayScore += 1;
-              break;
-            case 'Takut':
-              dayScore += 1;
-              break;
-            default:
-              dayScore += 3;
-          }
-        }
-        _dailyMoodScores[i] = dayScore / dayEntries.length;
-      } else {
-        _dailyMoodScores[i] = 0; // No entries for this day
-      }
-    }
-
-    // Calculate monthly mood scores for the past 4 months
-    _monthlyMoodScores = {};
-    for (int i = 3; i >= 0; i--) {
-      final month = DateTime(now.year, now.month - i, 1);
-      final monthEntries =
-          entries
-              .where(
-                (entry) =>
-                    entry.date.year == month.year &&
-                    entry.date.month == month.month,
-              )
-              .toList();
-
-      if (monthEntries.isNotEmpty) {
-        // Simple scoring: Senang=80, default=50
-        double monthScore = 0;
-        for (var entry in monthEntries) {
-          switch (entry.emotion) {
-            case 'Senang':
-              monthScore += 80;
-              break;
-            case 'Marah':
-              monthScore += 30;
-              break;
-            case 'Sedih':
-              monthScore += 20;
-              break;
-            case 'Takut':
-              monthScore += 40;
-              break;
-            default:
-              monthScore += 50;
-          }
-        }
-        _monthlyMoodScores[i] = monthScore / monthEntries.length;
-      } else {
-        _monthlyMoodScores[i] = 0; // No entries for this month
-      }
-    }
+    setState(() {
+      _entries = entries;
+      _statisticController.loadEntries();
+      _emotionCounts = _statisticController.emotionCounts;
+      _dailyMoodScores = _statisticController.dailyMoodScores;
+      _monthlyMoodScores = _statisticController.monthlyMoodScores;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Dapatkan ukuran layar
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 360;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Your Emotional Journey'),
-        backgroundColor: Colors.orangeAccent,
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionTitle('This Week\'s Emotions'),
-            const SizedBox(height: 8),
-            _buildPieChart(),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Your Mood Journey'),
-            const SizedBox(height: 8),
-            _buildLineChart(),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Your Frequent Feelings'),
-            const SizedBox(height: 8),
-            _buildFrequentFeelings(),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Monthly Insights'),
-            const SizedBox(height: 8),
-            _buildBarChart(),
-            // Add extra padding at the bottom to prevent navbar overlap
-            const SizedBox(height: 100),
-          ],
-        ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 2,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Calendar',
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 8),
+                  Text(
+                    'Your Emotional Journey',
+                    style: AppTextStyles.headingLarge.copyWith(
+                      fontSize: isSmallScreen ? 22 : 28,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Weekly Emotions', isSmallScreen),
+                  const SizedBox(height: 8),
+                  _buildPieChart(),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Mood Journey', isSmallScreen),
+                  const SizedBox(height: 8),
+                  _buildLineChart(),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Frequent Feelings', isSmallScreen),
+                  const SizedBox(height: 8),
+                  _buildFrequentFeelings(),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Monthly Insights', isSmallScreen),
+                  const SizedBox(height: 8),
+                  _buildBarChart(),
+                  // Add extra padding at the bottom
+                  const SizedBox(height: 100),
+                ],
+              );
+            },
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Stats'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  // Helper methods for building chart sections
+  Widget _buildSectionTitle(String title, [bool isSmallScreen = false]) {
     return Text(
       title,
-      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      style: AppTextStyles.headingSmall.copyWith(
+        fontSize: isSmallScreen ? 16 : 18,
+      ),
     );
   }
 
   Widget _buildPieChart() {
     if (_emotionCounts.isEmpty) {
-      return Container(
-        height: 200,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Text(
-          'No diary entries available yet',
-          style: TextStyle(color: Colors.grey),
-        ),
-      );
-    } // Calculate total for percentage
+      return _buildEmptyDataContainer('No diary entries available');
+    }
+
+    // Calculate total for percentage
     final total = _emotionCounts.values.fold(0, (sum, count) => sum + count);
 
     if (total == 0) {
-      return Container(
-        height: 200,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Text(
-          'No valid emotion data found',
-          style: TextStyle(color: Colors.grey),
-        ),
-      );
+      return _buildEmptyDataContainer('No valid emotion data found');
     }
 
     // Generate pie chart sections
     List<PieChartSectionData> sections = [];
     final colors = [
-      Colors.redAccent,
-      Colors.orangeAccent,
-      Colors.pinkAccent,
-      Colors.amberAccent,
+      AppColors.emotionHappy,
+      AppColors.emotionAngry,
+      AppColors.emotionSad,
+      AppColors.emotionFear,
     ];
     int colorIndex = 0;
 
@@ -252,19 +160,20 @@ class _StatisticState extends State<Statistic> {
           color: colors[colorIndex % colors.length],
           title: '$emoji\n$percentage%',
           titlePositionPercentageOffset: 0.55,
-          radius: 60,
-          titleStyle: const TextStyle(
+          radius: MediaQuery.of(context).size.width < 360 ? 50 : 60,
+          titleStyle: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: AppColors.white,
           ),
-          // Remove the badgeWidget to avoid text overlap
           badgeWidget: null,
           badgePositionPercentageOffset: 0,
         ),
       );
       colorIndex++;
-    } // Create a list of emotions to display in the legend
+    }
+
+    // Create a list of emotions to display in the legend
     final emotionsInChart = _emotionCounts.keys.toList();
 
     return Container(
@@ -272,7 +181,7 @@ class _StatisticState extends State<Statistic> {
       padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: Colors.white,
+        color: AppColors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -289,14 +198,15 @@ class _StatisticState extends State<Statistic> {
             child: PieChart(
               PieChartData(
                 sections: sections,
-                sectionsSpace: 3,
-                centerSpaceRadius: 40,
+                sectionsSpace: MediaQuery.of(context).size.width < 360 ? 2 : 3,
+                centerSpaceRadius:
+                    MediaQuery.of(context).size.width < 360 ? 30 : 40,
                 pieTouchData: PieTouchData(
                   touchCallback: (FlTouchEvent event, pieTouchResponse) {
                     // Can be used for interactive feedback
                   },
                 ),
-                centerSpaceColor: Colors.white,
+                centerSpaceColor: AppColors.white,
               ),
             ),
           ),
@@ -343,8 +253,7 @@ class _StatisticState extends State<Statistic> {
                         const SizedBox(width: 4),
                         Text(
                           '$emoji $emotion',
-                          style: const TextStyle(
-                            fontSize: 12,
+                          style: AppTextStyles.bodySmall.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -362,7 +271,7 @@ class _StatisticState extends State<Statistic> {
 
   Widget _buildLineChart() {
     if (_entries.isEmpty) {
-      return const Center(child: Text('No diary entries available yet'));
+      return _buildEmptyDataContainer('No diary entries available');
     }
 
     // Get the day names for the past week
@@ -379,12 +288,17 @@ class _StatisticState extends State<Statistic> {
       double score = _dailyMoodScores[6 - i] ?? 0;
       spots.add(FlSpot(i.toDouble(), score));
     }
+    final bool isSmallScreen = MediaQuery.of(context).size.width < 360;
+
     return Container(
-      height: 220,
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+      height: isSmallScreen ? 200 : 220,
+      padding: EdgeInsets.symmetric(
+        vertical: isSmallScreen ? 8 : 10,
+        horizontal: isSmallScreen ? 3 : 5,
+      ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: Colors.white,
+        color: AppColors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -414,10 +328,9 @@ class _StatisticState extends State<Statistic> {
                   if (value % 1 == 0 && value >= 0 && value <= 5) {
                     return Text(
                       value.toInt().toString(),
-                      style: const TextStyle(
+                      style: AppTextStyles.bodySmall.copyWith(
                         color: Colors.grey,
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
                       ),
                     );
                   }
@@ -435,10 +348,9 @@ class _StatisticState extends State<Statistic> {
                       padding: const EdgeInsets.only(top: 8.0),
                       child: Text(
                         days[value.toInt()],
-                        style: const TextStyle(
+                        style: AppTextStyles.bodySmall.copyWith(
                           color: Colors.black87,
                           fontWeight: FontWeight.bold,
-                          fontSize: 12,
                         ),
                       ),
                     );
@@ -448,30 +360,34 @@ class _StatisticState extends State<Statistic> {
                 reservedSize: 30,
               ),
             ),
-            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
           ),
           borderData: FlBorderData(show: false),
           lineBarsData: [
             LineChartBarData(
               spots: spots,
               isCurved: true,
-              color: const Color(0xFFFF7643),
+              color: AppColors.primary,
               barWidth: 4,
               dotData: FlDotData(
                 show: true,
                 getDotPainter: (spot, percent, barData, index) {
                   return FlDotCirclePainter(
                     radius: 6,
-                    color: Colors.white,
+                    color: AppColors.white,
                     strokeWidth: 2,
-                    strokeColor: const Color(0xFFFF7643),
+                    strokeColor: AppColors.primary,
                   );
                 },
               ),
               belowBarData: BarAreaData(
                 show: true,
-                color: const Color(0xFFFF7643).withOpacity(0.2),
+                color: AppColors.primary.withOpacity(0.2),
               ),
             ),
           ],
@@ -482,36 +398,53 @@ class _StatisticState extends State<Statistic> {
 
   Widget _buildFrequentFeelings() {
     if (_emotionCounts.isEmpty) {
-      return const Center(child: Text('No diary entries available yet'));
+      return _buildEmptyDataContainer('No diary entries available');
     }
 
     // Calculate total for percentage
     final total = _emotionCounts.values.fold(0, (sum, count) => sum + count);
 
     // Take top 3 emotions
-    final colors = [Colors.redAccent, Colors.orangeAccent, Colors.pinkAccent];
+    final colors = [
+      AppColors.emotionHappy,
+      AppColors.emotionAngry,
+      AppColors.emotionSad,
+    ];
     final topEmotions =
         _emotionCounts.entries.toList()
           ..sort((a, b) => b.value.compareTo(a.value));
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: List.generate(topEmotions.length > 3 ? 3 : topEmotions.length, (
-        index,
-      ) {
-        final emotion = topEmotions[index].key;
-        final count = topEmotions[index].value;
-        final percentage = ((count / total) * 100).round();
-        return _buildFeelingCard(
-          emotion,
-          '$percentage%',
-          colors[index % colors.length],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isSmallScreen = constraints.maxWidth < 360;
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: List.generate(
+            topEmotions.length > 3 ? 3 : topEmotions.length,
+            (index) {
+              final emotion = topEmotions[index].key;
+              final count = topEmotions[index].value;
+              final percentage = ((count / total) * 100).round();
+              return _buildFeelingCard(
+                emotion,
+                '$percentage%',
+                colors[index % colors.length],
+                isSmallScreen,
+              );
+            },
+          ),
         );
-      }),
+      },
     );
   }
 
-  Widget _buildFeelingCard(String feeling, String percentage, Color color) {
+  Widget _buildFeelingCard(
+    String feeling,
+    String percentage,
+    Color color, [
+    bool isSmallScreen = false,
+  ]) {
     // Use emoji based on feeling
     String emoji;
     switch (feeling) {
@@ -532,10 +465,10 @@ class _StatisticState extends State<Statistic> {
     }
 
     return Container(
-      width: 100,
-      padding: const EdgeInsets.all(16),
+      width: isSmallScreen ? 90 : 100,
+      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
@@ -549,29 +482,33 @@ class _StatisticState extends State<Statistic> {
       ),
       child: Column(
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 40)),
-          const SizedBox(height: 8),
+          Text(emoji, style: TextStyle(fontSize: isSmallScreen ? 32 : 40)),
+          SizedBox(height: isSmallScreen ? 6 : 8),
           Text(
             feeling,
-            style: TextStyle(
+            style: AppTextStyles.bodyMedium.copyWith(
               color: color,
               fontWeight: FontWeight.bold,
-              fontSize: 16,
+              fontSize: isSmallScreen ? 12 : 14,
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: isSmallScreen ? 3 : 4),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            padding: EdgeInsets.symmetric(
+              horizontal: isSmallScreen ? 6 : 8,
+              vertical: isSmallScreen ? 2 : 3,
+            ),
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
               percentage,
-              style: TextStyle(
+              style: AppTextStyles.bodySmall.copyWith(
                 color: color,
                 fontWeight: FontWeight.bold,
-                fontSize: 14,
+                fontSize: isSmallScreen ? 10 : 12,
               ),
             ),
           ),
@@ -582,7 +519,7 @@ class _StatisticState extends State<Statistic> {
 
   Widget _buildBarChart() {
     if (_entries.isEmpty) {
-      return const Center(child: Text('No diary entries available yet'));
+      return _buildEmptyDataContainer('No diary entries available');
     }
 
     // Get the month names for the past 4 months
@@ -609,14 +546,17 @@ class _StatisticState extends State<Statistic> {
 
     // Colors for the bars
     final colors = [
-      Colors.redAccent,
-      Colors.orangeAccent,
-      Colors.pinkAccent,
-      Colors.amberAccent,
+      AppColors.emotionHappy,
+      AppColors.emotionAngry,
+      AppColors.emotionSad,
+      AppColors.emotionFear,
     ];
 
     // Create bar groups for the chart
     List<BarChartGroupData> barGroups = [];
+    final bool isSmallScreen = MediaQuery.of(context).size.width < 360;
+    final double barWidth = isSmallScreen ? 16 : 20;
+
     for (int i = 0; i < 4; i++) {
       // Use the monthly mood score or 0 if not available
       double score = _monthlyMoodScores[3 - i] ?? 0;
@@ -627,7 +567,7 @@ class _StatisticState extends State<Statistic> {
             BarChartRodData(
               toY: score,
               color: colors[i % colors.length],
-              width: 20,
+              width: barWidth,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(4),
                 topRight: Radius.circular(4),
@@ -637,12 +577,16 @@ class _StatisticState extends State<Statistic> {
         ),
       );
     }
+
     return Container(
-      height: 250,
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+      height: isSmallScreen ? 220 : 250,
+      padding: EdgeInsets.symmetric(
+        vertical: isSmallScreen ? 8 : 10,
+        horizontal: isSmallScreen ? 3 : 5,
+      ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: Colors.white,
+        color: AppColors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -674,10 +618,9 @@ class _StatisticState extends State<Statistic> {
                   if (value % 25 == 0 && value >= 0 && value <= 100) {
                     return Text(
                       value.toInt().toString(),
-                      style: const TextStyle(
+                      style: AppTextStyles.bodySmall.copyWith(
                         color: Colors.grey,
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
                       ),
                     );
                   }
@@ -695,10 +638,9 @@ class _StatisticState extends State<Statistic> {
                       padding: const EdgeInsets.only(top: 8.0),
                       child: Text(
                         months[value.toInt()],
-                        style: const TextStyle(
+                        style: AppTextStyles.bodySmall.copyWith(
                           color: Colors.black87,
                           fontWeight: FontWeight.bold,
-                          fontSize: 12,
                         ),
                       ),
                     );
@@ -708,13 +650,44 @@ class _StatisticState extends State<Statistic> {
                 reservedSize: 30,
               ),
             ),
-            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
           ),
           borderData: FlBorderData(show: false),
           barGroups: barGroups,
         ),
       ),
+    );
+  }
+
+  Widget _buildEmptyDataContainer(String message) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isSmallScreen = constraints.maxWidth < 360;
+        return Container(
+          height: isSmallScreen ? 180 : 200,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              message,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: Colors.grey,
+                fontSize: isSmallScreen ? 14 : 16,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        );
+      },
     );
   }
 }

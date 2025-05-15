@@ -38,28 +38,29 @@ class HeartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final Paint paint =
         Paint()
-          ..color = Colors.orangeAccent
+          ..color = const Color(0xfffd745a)
           ..style = PaintingStyle.fill;
 
     final double width = size.width;
     final double height = size.height;
 
     final Path path = Path();
-
-    // Draw heart shape
-    path.moveTo(width / 2, height / 5);
-
-    // Top left curve
-    path.cubicTo(width / 8, 0, -width / 4, height / 2, width / 2, height);
-
-    // Top right curve
+    path.moveTo(width / 2, height * 0.2);
     path.cubicTo(
-      width * 1.25,
-      height / 2,
-      width * 0.875,
-      0,
+      width * 0.2,
+      height * -0.15, // control point 1
+      width * -0.1,
+      height * 0.6, // control point 2
       width / 2,
-      height / 5,
+      height, // end point
+    );
+    path.cubicTo(
+      width * 1.1,
+      height * 0.6, // control point 1
+      width * 0.8,
+      height * -0.15, // control point 2
+      width / 2,
+      height * 0.2, // end point
     );
 
     canvas.drawPath(path, paint);
